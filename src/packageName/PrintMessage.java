@@ -56,7 +56,4 @@ public class PrintMessage {
         System.out.println("4- Search By topic");
         System.out.println("5- Search By Publish Year");
     }
-    static void showDeleteMessage(){
-        System.out.println("1- Delete Book by ID");
-    }
 }
