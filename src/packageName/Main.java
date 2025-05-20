@@ -5,18 +5,11 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Scanner;
 
+
 public class Main {
     static final String MANAGER = "omar@gmail.com_123.txt";
     Scanner sc = new Scanner(System.in);
 
-    public static boolean isNumeric(String str) {
-        try {
-            Integer.parseInt(str);
-            return true;
-        } catch (NumberFormatException e) {
-            return false;
-        }
-    }
 
     public String start() {
         String input;
@@ -31,8 +24,7 @@ public class Main {
             }
         }
     }
-
-    public void signUp() throws IOException {
+    public void signUp(){
         String[] msg;
         while (true) {
             msg = PrintMessage.signUp();
@@ -43,7 +35,12 @@ public class Main {
                     System.out.println("Account already exists");
                     break;
                 } else {
-                    boolean ch = f.createNewFile();
+                    boolean ch = false;
+                    try{
+                        ch = f.createNewFile();
+                    }catch (IOException e){
+                        System.out.println("An error occurred.");
+                    }
                     if (ch) System.out.println("Account created");
                     break;
                 }
@@ -52,8 +49,7 @@ public class Main {
             }
         }
     }
-
-    public String[] login() throws IOException {
+    public String[] login() {
         String[] msg;
         int i = 0;
         while (true) {
@@ -74,29 +70,135 @@ public class Main {
         }
         return null;
     }
+    public void showBooks(ArrayList<Book> books){
+        if(books.isEmpty()){
+            System.out.println("No books found");
+        }
+        else{
+            for (Book book : books) {
+                printBook(book);
+            }
+        }
+    }
+    public void searchBooks(ArrayList<Book> books){
+        String input;
+        while (true) {
+            PrintMessage.showSearchMessage();
+            input = sc.nextLine();
+            if (input.equals("1")) {
+                Searching.handleSearchingById(books);
+                break;
+            }
+            if (input.equals("2")) {
+                Searching.handleSearchingByTitle(books);
+                break;
+            }
+            if (input.equals("3")) {
+                Searching.handleSearchingByAuthor(books);
+                break;
+            }
+            if (input.equals("4")) {
+                Searching.handleSearchingByTopic(books);
+                break;
+            }
+            if (input.equals("5")) {
+                Searching.handleSearchingByYear(books);
+                break;
+            } else {
+                System.out.println("Invalid input");
+            }
+        }
+    }
+    public void deleteBook(ArrayList<Book> books) {
+        String id;
+        while (true) {
+            System.out.print("Enter ID: ");
+            id = sc.nextLine();
+            if (isNumeric(id)) break;
+            else {
+                System.out.println("Invalid ID");
+            }
+        }
+        int idx = Searching.searchForId(books, Integer.parseInt(id));
+        if (idx == -1) {
+            System.out.println("Book not found");
+        } else {
+            books.remove(idx);
+            System.out.println("Book removed");
+        }
+    }
+    public void addToMyBooks(ArrayList<Book> allBooks,ArrayList<Book> myBooks) {
+        String id;
+        while (true) {
+            System.out.print("Enter ID: ");
+            id = sc.nextLine();
+            if (isNumeric(id)) break;
+            else {
+                System.out.println("Invalid ID");
+            }
+        }
+        int idx = Searching.searchForId(myBooks, Integer.parseInt(id));
+        if (idx == -1) {
+            idx = Searching.searchForId(allBooks, Integer.parseInt(id));
+            if(idx == -1){
+                System.out.println("Book not found");
+            }
+            else{
+                myBooks.add(allBooks.get(idx));
+                System.out.println("Book added");
+            }
+        } else {
+            System.out.println("Book already exists in your books");
+        }
+    }
+    public void deleteFromMyBooks(ArrayList<Book> myBooks) {
+        String id;
+        while (true) {
+            System.out.print("Enter ID: ");
+            id = sc.nextLine();
+            if (isNumeric(id)) break;
+            else {
+                System.out.println("Invalid ID");
+            }
+        }
+        int idx = Searching.searchForId(myBooks, Integer.parseInt(id));
+        if (idx == -1) {
+            System.out.println("Book not found");
+        } else {
+            myBooks.remove(idx);
+            System.out.println("Book removed");
+        }
+    }
 
     public Boolean validateEmailAndPassword(String email, String password) {
-        boolean valid = true;
-        if (!email.contains("@") || !email.contains(".")) {
-            valid = false;
-        }
+        boolean valid = email.contains("@") && email.contains(".");
         if (password.length() < 3 || password.length() > 16) {
             valid = false;
         }
         return valid;
     }
-
-    public void printBook(Book book) {
+    public static void printBook(Book book) {
         System.out.println("ID: " + book.getId() + ", " + "Title: " + book.getTitle() + ", "
                 + "Author: " + book.getAuthor() + ", " + "Topic: " + book.getTopic() + ", " + "Year: " + book.getYear());
     }
+    public static boolean isNumeric(String str) {
+        try {
+            Integer.parseInt(str);
+            return true;
+        } catch (NumberFormatException e) {
+            return false;
+        }
+    }
 
 
-    public static void main(String[] args) throws IOException {
+
+
+    public static void main(String[] args)  {
         Main main = new Main();
         Scanner sc = new Scanner(System.in);
 
-        String[] msg = null;
+
+        String[] msg;
 
         while (true) {
             String input = main.start();
@@ -112,173 +214,27 @@ public class Main {
             if (msg != null) break;
         }
         String fileName = (msg[0] + "_" + msg[1] + ".txt");
-        if (fileName.equals(MANAGER)) {
+        if (fileName.equals(MANAGER)) { // Manager Account
             ArrayList<Book> books = HandleFiles.readFile(fileName);
             String input;
             while (true) {
                 PrintMessage.showMainMessageManager(msg[0]);
                 input = sc.nextLine();
-                if (input.equals("1")) {
-                    if(books.isEmpty()){
-                        System.out.println("No books found");
-                    }
-                    else{
-                        for (Book book : books) {
-                            main.printBook(book);
-                        }
-                    }
+                if (input.equals("1")) { // show all books
+                    main.showBooks(books);
                 }
-                else if (input.equals("2")) {
-                    while (true) {
-                        PrintMessage.showSearchMessage();
-                        input = sc.nextLine();
-                        if (input.equals("1")) {
-                            String id;
-                            while (true) {
-                                System.out.print("Enter ID: ");
-                                id = sc.nextLine();
-                                if (isNumeric(id)) break;
-                                else {
-                                    System.out.println("Invalid ID");
-                                }
-                            }
-                            Book book = Searching.searchById(books, Integer.parseInt(id));
-                            if (book == null) {
-                                System.out.println("Book not found");
-                            } else {
-                                main.printBook(book);
-                            }
-                            break;
-                        }
-                        if (input.equals("2")) {
-                            System.out.print("Enter Title: ");
-                            String title = sc.nextLine();
-                            ArrayList<Book> searchedBooks = Searching.searchByTitle(books, title);
-                            if (searchedBooks.isEmpty()) {
-                                System.out.println("Book not found");
-                            } else {
-                                for (Book book : searchedBooks) {
-                                    main.printBook(book);
-                                }
-                            }
-                            break;
-                        }
-                        if (input.equals("3")) {
-                            System.out.print("Enter Author: ");
-                            String author = sc.nextLine();
-                            ArrayList<Book> searchedBooks = Searching.searchByAuthor(books, author);
-                            if (searchedBooks.isEmpty()) {
-                                System.out.println("Books not found");
-                            } else {
-                                for (Book book : searchedBooks) {
-                                    main.printBook(book);
-                                }
-                            }
-                            break;
-                        }
-                        if (input.equals("4")) {
-                            System.out.print("Enter topic: ");
-                            String topic = sc.nextLine();
-                            ArrayList<Book> searchedBooks = Searching.searchByTopic(books, topic);
-                            if (searchedBooks.isEmpty()) {
-                                System.out.println("Books not found");
-                            } else {
-                                for (Book book : searchedBooks) {
-                                    main.printBook(book);
-                                }
-                            }
-                            break;
-                        }
-                        if (input.equals("5")) {
-                            String year;
-                            while (true) {
-                                System.out.print("Enter year: ");
-                                year = sc.nextLine();
-                                if (isNumeric(year) && Integer.parseInt(year) > 1900 && Integer.parseInt(year) <= 2025)
-                                    break;
-                                else
-                                    System.out.println("Invalid year");
-                            }
-                            ArrayList<Book> searchedBooks = Searching.searchByYear(books, Integer.parseInt(year));
-                            if (searchedBooks.isEmpty()) {
-                                System.out.println("Books not found");
-                            } else {
-                                for (Book book : searchedBooks) {
-                                    main.printBook(book);
-                                }
-                            }
-                            break;
-                        } else {
-                            System.out.println("Invalid input");
-                        }
-                    }
+                else if (input.equals("2")) { // search book
+                    main.searchBooks(books);
                 }
-                else if (input.equals("3")) {
+                else if (input.equals("3")) { // add new book
                     int id = books.getLast().getId() + 1;
-                    String title;
-                    while(true){
-                        System.out.print("Enter Title: ");
-                        title = sc.nextLine();
-                        if(title.isEmpty()){
-                            System.out.println("Title is empty");
-                        }
-                        else{
-                            break;
-                        }
-                    }
-                    String author;
-                    while(true){
-                        System.out.print("Enter Author: ");
-                        author = sc.nextLine();
-                        if(author.isEmpty()){
-                            System.out.println("Author is empty");
-                        }
-                        else{
-                            break;
-                        }
-                    }
-                    String topic;
-                    while(true){
-                        System.out.print("Enter Topic: ");
-                        topic = sc.nextLine();
-                        if(topic.isEmpty()){
-                            System.out.println("Topic is empty");
-                        }
-                        else{
-                            break;
-                        }
-                    }
-                    String strYear;
-                    while (true) {
-                        System.out.print("Enter Year: ");
-                        strYear = sc.nextLine();
-                        if (isNumeric(strYear) && Integer.parseInt(strYear) > 1900 && Integer.parseInt(strYear) <= 2025) {
-                            break;
-                        }
-                    }
-                    int year = Integer.parseInt(strYear);
-                    books.add(new Book(id, title, author, topic, year));
+                    books.add(Adding.createBook(id));
                     System.out.println("Book added");
                 }
-                else if (input.equals("4")) {
-                    String id;
-                    while (true) {
-                        System.out.print("Enter ID: ");
-                        id = sc.nextLine();
-                        if (isNumeric(id)) break;
-                        else {
-                            System.out.println("Invalid ID");
-                        }
-                    }
-                    int idx = Searching.searchForId(books, Integer.parseInt(id));
-                    if (idx == -1) {
-                        System.out.println("Book not found");
-                    } else {
-                        books.remove(idx);
-                        System.out.println("Book removed");
-                    }
+                else if (input.equals("4")) { // delete book
+                    main.deleteBook(books);
                 }
-                else if(input.equals("-1")) {
+                else if(input.equals("-1")) { // Exit
                     break;
                 }
                 else {
@@ -287,253 +243,38 @@ public class Main {
             }
             HandleFiles.writeFile(MANAGER, books);
         }
-        else{
+        else{ // user Account
             ArrayList<Book> managerBooks = HandleFiles.readFile(MANAGER);
             ArrayList<Book> userBooks = HandleFiles.readFile(fileName);
             String input;
             while (true) {
                 PrintMessage.showMainMessageUser(msg[0]);
                 input = sc.nextLine();
-                if (input.equals("1")) {
-                    if(managerBooks.isEmpty()){
-                        System.out.println("No books found");
-                    }
-                    else{
-                        for (Book book : managerBooks) {
-                            main.printBook(book);
-                        }
-                    }
+                if (input.equals("1")) { // show manager books(All books)
+                    main.showBooks(managerBooks);
                 }
-                else if (input.equals("2")) {
-                    if(userBooks.isEmpty()){
-                        System.out.println("No books found");
-                    }
-                    else{
-                        for (Book book : userBooks) {
-                            main.printBook(book);
-                        }
-                    }
+                else if (input.equals("2")) { // show user books
+                    main.showBooks(userBooks);
                 }
-                else if (input.equals("3")) {
-                    while (true) {
-                        PrintMessage.showSearchMessage();
-                        input = sc.nextLine();
-                        if (input.equals("1")) {
-                            String id;
-                            while (true) {
-                                System.out.print("Enter ID: ");
-                                id = sc.nextLine();
-                                if (isNumeric(id)) break;
-                                else {
-                                    System.out.println("Invalid ID");
-                                }
-                            }
-                            Book book = Searching.searchById(managerBooks, Integer.parseInt(id));
-                            if (book == null) {
-                                System.out.println("Book not found");
-                            } else {
-                                main.printBook(book);
-                            }
-                            break;
-                        }
-                        if (input.equals("2")) {
-                            System.out.print("Enter Title: ");
-                            String title = sc.nextLine();
-                            ArrayList<Book> searchedBooks = Searching.searchByTitle(managerBooks, title);
-                            if (searchedBooks.isEmpty()) {
-                                System.out.println("Book not found");
-                            } else {
-                                for (Book book : searchedBooks) {
-                                    main.printBook(book);
-                                }
-                            }
-                            break;
-                        }
-                        if (input.equals("3")) {
-                            System.out.print("Enter Author: ");
-                            String author = sc.nextLine();
-                            ArrayList<Book> searchedBooks = Searching.searchByAuthor(managerBooks, author);
-                            if (searchedBooks.isEmpty()) {
-                                System.out.println("Books not found");
-                            } else {
-                                for (Book book : searchedBooks) {
-                                    main.printBook(book);
-                                }
-                            }
-                            break;
-                        }
-                        if (input.equals("4")) {
-                            System.out.print("Enter topic: ");
-                            String topic = sc.nextLine();
-                            ArrayList<Book> searchedBooks = Searching.searchByTopic(managerBooks, topic);
-                            if (searchedBooks.isEmpty()) {
-                                System.out.println("Books not found");
-                            } else {
-                                for (Book book : searchedBooks) {
-                                    main.printBook(book);
-                                }
-                            }
-                            break;
-                        }
-                        if (input.equals("5")) {
-                            String year;
-                            while (true) {
-                                System.out.print("Enter year: ");
-                                year = sc.nextLine();
-                                if (isNumeric(year) && Integer.parseInt(year) > 1900 && Integer.parseInt(year) <= 2025)
-                                    break;
-                                else
-                                    System.out.println("Invalid year");
-                            }
-                            ArrayList<Book> searchedBooks = Searching.searchByYear(managerBooks, Integer.parseInt(year));
-                            if (searchedBooks.isEmpty()) {
-                                System.out.println("Books not found");
-                            } else {
-                                for (Book book : searchedBooks) {
-                                    main.printBook(book);
-                                }
-                            }
-                            break;
-                        } else {
-                            System.out.println("Invalid input");
-                        }
-                    }
+                else if (input.equals("3")) { // search manager books(All books)
+                    main.searchBooks(managerBooks);
                 }
-                else if (input.equals("4")) {
-                    while (true) {
-                        PrintMessage.showSearchMessage();
-                        input = sc.nextLine();
-                        if (input.equals("1")) {
-                            String id;
-                            while (true) {
-                                System.out.print("Enter ID: ");
-                                id = sc.nextLine();
-                                if (isNumeric(id)) break;
-                                else {
-                                    System.out.println("Invalid ID");
-                                }
-                            }
-                            Book book = Searching.searchById(userBooks, Integer.parseInt(id));
-                            if (book == null) {
-                                System.out.println("Book not found");
-                            } else {
-                                main.printBook(book);
-                            }
-                            break;
-                        }
-                        if (input.equals("2")) {
-                            System.out.print("Enter Title: ");
-                            String title = sc.nextLine();
-                            ArrayList<Book> searchedBooks = Searching.searchByTitle(userBooks, title);
-                            if (searchedBooks.isEmpty()) {
-                                System.out.println("Book not found");
-                            } else {
-                                for (Book book : searchedBooks) {
-                                    main.printBook(book);
-                                }
-                            }
-                            break;
-                        }
-                        if (input.equals("3")) {
-                            System.out.print("Enter Author: ");
-                            String author = sc.nextLine();
-                            ArrayList<Book> searchedBooks = Searching.searchByAuthor(userBooks, author);
-                            if (searchedBooks.isEmpty()) {
-                                System.out.println("Books not found");
-                            } else {
-                                for (Book book : searchedBooks) {
-                                    main.printBook(book);
-                                }
-                            }
-                            break;
-                        }
-                        if (input.equals("4")) {
-                            System.out.print("Enter topic: ");
-                            String topic = sc.nextLine();
-                            ArrayList<Book> searchedBooks = Searching.searchByTopic(userBooks, topic);
-                            if (searchedBooks.isEmpty()) {
-                                System.out.println("Books not found");
-                            } else {
-                                for (Book book : searchedBooks) {
-                                    main.printBook(book);
-                                }
-                            }
-                            break;
-                        }
-                        if (input.equals("5")) {
-                            String year;
-                            while (true) {
-                                System.out.print("Enter year: ");
-                                year = sc.nextLine();
-                                if (isNumeric(year) && Integer.parseInt(year) > 1900 && Integer.parseInt(year) <= 2025)
-                                    break;
-                                else
-                                    System.out.println("Invalid year");
-                            }
-                            ArrayList<Book> searchedBooks = Searching.searchByYear(userBooks, Integer.parseInt(year));
-                            if (searchedBooks.isEmpty()) {
-                                System.out.println("Books not found");
-                            } else {
-                                for (Book book : searchedBooks) {
-                                    main.printBook(book);
-                                }
-                            }
-                            break;
-                        } else {
-                            System.out.println("Invalid input");
-                        }
-                    }
+                else if (input.equals("4")) { // search user books
+                    main.searchBooks(userBooks);
                 }
-                else if(input.equals("5")) {
-                    String id;
-                    while (true) {
-                        System.out.print("Enter ID: ");
-                        id = sc.nextLine();
-                        if (isNumeric(id)) break;
-                        else {
-                            System.out.println("Invalid ID");
-                        }
-                    }
-                    int idx = Searching.searchForId(userBooks, Integer.parseInt(id));
-                    if (idx == -1) {
-                        idx = Searching.searchForId(managerBooks, Integer.parseInt(id));
-                        if(idx == -1){
-                            System.out.println("Book not found");
-                        }
-                        else{
-                            userBooks.add(managerBooks.get(idx));
-                            System.out.println("Book added");
-                        }
-                    } else {
-                        System.out.println("Book already exists in your books");
-                    }
+                else if(input.equals("5")) { // Add to my books
+                    main.addToMyBooks(managerBooks, userBooks);
                 }
-                else if (input.equals("6")) {
-                    String id;
-                    while (true) {
-                        System.out.print("Enter ID: ");
-                        id = sc.nextLine();
-                        if (isNumeric(id)) break;
-                        else {
-                            System.out.println("Invalid ID");
-                        }
-                    }
-                    int idx = Searching.searchForId(userBooks, Integer.parseInt(id));
-                    if (idx == -1) {
-                        System.out.println("Book not found");
-                    } else {
-                        userBooks.remove(idx);
-                        System.out.println("Book removed");
-                    }
+                else if (input.equals("6")) { // delete from my books
+                    main.deleteFromMyBooks(userBooks);
                 }
                 else{
                     break;
                 }
-
             }
-
+            HandleFiles.writeFile(fileName, userBooks);
         }
-        sc.close();
+
     }
 
 }

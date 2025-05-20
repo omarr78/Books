@@ -2,4 +2,4 @@
 102,You Don’t Know JS,Kyle Simpson,JavaScript,2014
 103,The Pragmatic Programmer,David Thomas,Software Engineering,2018
 104,Python Crash Course,Eric Matthes, Python Programming,2015
-105,Design Patterns,Richard Helm,Software Design Patterns,2000
+106,omar is implementing a project right now,omar,creating a project,2019

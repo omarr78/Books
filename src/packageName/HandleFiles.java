@@ -1,9 +1,6 @@
 package packageName;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.Scanner;
 
@@ -29,7 +26,7 @@ public class HandleFiles {
         }
         return books;
     }
-    static void writeFile(String filename, ArrayList<Book> books) throws IOException {
+    static void writeFile(String filename, ArrayList<Book> books) {
         if(books.isEmpty()) {
             return;
         }
@@ -41,7 +38,7 @@ public class HandleFiles {
                         +book.getTopic()+","+book.getYear()+"\n");
             }
             myWriter.close();
-        }catch(FileNotFoundException e){
+        }catch(IOException e){
             System.out.println(e.getMessage());
         }
 
